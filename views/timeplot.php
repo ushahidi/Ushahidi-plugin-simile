@@ -26,6 +26,10 @@
 		h3 {
 			color: #77603C;
 		}
+		.caption {
+			font-style: italic;
+			text-align: center;
+		}
 	</style>
     <script src="http://api.simile-widgets.org/timeplot/1.1/timeplot-api.js"
        type="text/javascript"></script>
@@ -72,5 +76,6 @@
 	<body onload="onLoad();" onresize="onResize();">
 		<h3>Ushahidi Simile Timeplot</h3>
 		<div id="timeplot" style="height: 150px;"></div>
+		<div class="caption">no. of incidents perd day</div>
 	</body>
 </html>
