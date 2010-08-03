@@ -21,18 +21,18 @@ class Simile_Controller extends Controller
 	/*
 	 * Displays a page with a Simile Timeline of incidents per day
 	 */
-	public function timeline_example()
+	public function timeline()
 	{
 		//$incident = ORM::factory('incident')->find();
 		//$view->focusDate = $incident->incident_date;
-		$view = new View("timeline_example");
+		$view = new View("timeline");
 		$view->render(TRUE);
 	}
 	
 	/*
 	 * returns JSON of incidents formatted for Simile Timeline
 	 */
-	public function timeline()
+	public function timeline_data()
 	{
 		$this->auto_render = FALSE;
         $this->template = new View('json/timeline');
