@@ -53,7 +53,7 @@
 
 		tl = Timeline.create(document.getElementById("timeline"), bandInfos);
 
-		var url = "timeline/";
+		var url = "timeline_data/";
 		tdata = "";
 		$.getJSON(url,
 			function(data) {
