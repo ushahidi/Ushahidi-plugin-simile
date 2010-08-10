@@ -145,7 +145,7 @@ class Simile_Controller extends Template_Controller {
 					array_push($json_array, $json_item);
 				}
 				$timeline_data .= implode(",", $json_array);
-				$timeline_data .= "])";
+				$timeline_data .= "]);";
 
 				// Cache this timeline
 				$this->cache->set('timeline-'.$start.'-'.$end, $timeline_data, array('timelines'), 3600);

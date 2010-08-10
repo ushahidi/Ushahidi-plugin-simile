@@ -9,6 +9,7 @@ author: Soyapi Mumba & David Kobia
 author website: 
 
 == Description ==
+Create TimeMaps (Combination of Map Slider and Map) and TimePlots (Graph of events).
 
 == Installation ==
 1. Copy the entire /simile/ directory into your /plugins/ directory.
