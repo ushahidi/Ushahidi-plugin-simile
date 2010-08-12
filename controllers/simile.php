@@ -11,9 +11,10 @@
  * @package    Ushahidi - http://source.ushahididev.com
  * @module	   Simile Timeline Controller
  * @copyright  Ushahidi - http://www.ushahidi.com
- * @license    http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License (LGPL)
-*
-*/
+ * @license    http://www.gnu.org/copyleft/lesser.html
+ *             GNU Lesser General Public License (LGPL)
+ *
+ */
 
 class Simile_Controller extends Controller
 {
@@ -30,38 +31,13 @@ class Simile_Controller extends Controller
 	}
 	
 	/*
-	 * returns JSON of incidents formatted for Simile Timeline
+	 * Displays JSON of incidents formatted for Simile Timeline
 	 */
 	public function timeline_data()
 	{
 		$this->auto_render = FALSE;
         $this->template = new View('json/timeline');
-		// Retrieve all markers
-		$markers = ORM::factory('incident')
-			->select('DISTINCT incident.*')
-			->with('location')
-			->join('media', 'incident.id', 'media.incident_id','LEFT')
-			->where('incident.incident_active = 1 ')
-			->find_all();
-		$timeline_data = "{\"dateTimeFormat\": \"iso8601\",
-						\"wikiURL\": \"http://simile.mit.edu/shelf/\",
-						\"wikiSection\": \"Simile Cubism Timeline\",
-                        events: [ ";
-		$json_array = array();
-		foreach ($markers as $marker)
-        {
-            $json_item = "{";
-            $json_item .= "\"start\": \"" . date('Y-m-d',strtotime($marker->incident_date)) . "\",";
-			$json_item .= "\"title\": \"" . htmlentities($marker->incident_title)  ."\",";
-			$json_item .= "\"description\": \"" . $marker->incident_description ."\",";
-			$json_item .= "\"image\": \"" . url::base() . "media/img/media-image.jpg\",";
-			$json_item .= "\"link\": \"" . url::base() . "reports/view/" . $marker->id ."\"";
-			$json_item .= "}";
-			array_push($json_array, $json_item);
-		}
-		$timeline_data .= implode(",", $json_array);
-		$timeline_data .= "]}";
-
+		$timeline_data = Simile_Model::get_timeline_data();
 		//header('Content-type: application/json');
 		echo $timeline_data;
 
@@ -77,30 +53,16 @@ class Simile_Controller extends Controller
 	}
 
 	/*
-	 * Returns text data of number of incidents per day formatted for Simile
+	 * Displays text data of number of incidents per day formatted for Simile
 	 * Timeplot
 	 */
 	public function timeplot_text_data()
 	{
 		$this->auto_render = FALSE;
 		$this->template = new View('json/timeline');
-		// Retrieve all markers
-		$markers = ORM::factory('incident')
-			->select('incident.incident_date, COUNT(*) AS incident_count')
-			->where('incident.incident_active = 1 GROUP BY DATE(incident_date)')
-			->find_all();
-		$timeplot_data = "# Ushahidi Text Data for Timeplot\n";
-		$json_array = array();
-		foreach ($markers as $marker)
-		{
-			$json_item = date('Y-m-d',strtotime($marker->incident_date)) . ",";
-			$json_item .= $marker->incident_count;
-			array_push($json_array, $json_item);
-		}
-		$timeplot_data .= implode("\n", $json_array);
+		$timeplot_data = Simile_Model::get_timeplot_text_data();
 
 		echo $timeplot_data;
-
 	}
 
 	/*

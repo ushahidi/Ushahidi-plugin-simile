@@ -19,6 +19,71 @@
 class Simile_Model extends ORM {
 
 	/*
+	 * returns JSON of incidents formatted for Simile Timeline
+	 */
+	public function get_timeline_data()
+	{
+		$markers = ORM::factory('incident')
+			->select('DISTINCT incident.*')
+			->with('location')
+			->join('media', 'incident.id', 'media.incident_id','LEFT')
+			->where('incident.incident_active = 1 ')
+			->find_all();
+
+		$timeline_data = "{\"dateTimeFormat\": \"iso8601\",
+						\"wikiURL\": \"http://simile.mit.edu/shelf/\",
+						\"wikiSection\": \"Simile Cubism Timeline\",
+                        events: [ ";
+		$json_array = array();
+		foreach ($markers as $marker)
+        {
+            $json_item = "{";
+            $json_item .= "\"start\": \"" . 
+			              date('Y-m-d',strtotime($marker->incident_date)) .
+						  "\",";
+			$json_item .= "\"title\": \"" .
+			              htmlentities($marker->incident_title)  ."\",";
+			$json_item .= "\"description\": \"" .
+			              $marker->incident_description ."\",";
+			$json_item .= "\"image\": \"" . url::base() .
+			              "media/img/media-image.jpg\",";
+			$json_item .= "\"link\": \"" . url::base() .
+			              "reports/view/" . $marker->id ."\"";
+			$json_item .= "}";
+			array_push($json_array, $json_item);
+		}
+		$timeline_data .= implode(",", $json_array);
+		$timeline_data .= "]}";
+		
+		return $timeline_data;
+	}
+
+	/*
+	 * Returns text data of number of incidents per day formatted for Simile
+	 * Timeplot
+	 */
+	public function get_timeplot_text_data()
+	{
+		// Retrieve all markers
+		$markers = ORM::factory('incident')
+			->select('incident.incident_date, COUNT(*) AS incident_count')
+			->where('incident.incident_active = 1 GROUP BY DATE(incident_date)')
+			->find_all();
+		
+		$data = "# Ushahidi Text Data for Timeplot\n";
+		$json_array = array();
+		foreach ($markers as $marker)
+		{
+			$json_item = date('Y-m-d',strtotime($marker->incident_date)) . ",";
+			$json_item .= $marker->incident_count;
+			array_push($json_array, $json_item);
+		}
+		$data .= implode("\n", $json_array);
+
+		return $data;
+	}
+
+	/*
 	 * returns JSON of incidents formatted for Simile Timemap
 	 */
 	public function get_timemap_data()
