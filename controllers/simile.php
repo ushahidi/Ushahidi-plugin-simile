@@ -72,14 +72,12 @@ class Simile_Controller extends Controller
 	 */
 	public function timeplot()
 	{
-		//$incident = ORM::factory('incident')->find();
-		//$view->focusDate = $incident->incident_date;
 		$view = new View("timeplot");
 		$view->render(TRUE);
 	}
 
 	/*
-	 * returns text data of number of incidents per day formatted for Simile
+	 * Returns text data of number of incidents per day formatted for Simile
 	 * Timeplot
 	 */
 	public function timeplot_text_data()
@@ -104,5 +102,16 @@ class Simile_Controller extends Controller
 		echo $timeplot_data;
 
 	}
+
+	/*
+	 * Displays a page with a Mashup of Simile Timeline and Map of incidents
+	 */
+	public function timemap()
+	{
+		$view = new View("timemap");
+		$view->timemap_data = Simile_Model::get_timemap_data();
+		$view->render(TRUE);
+	}
+
 }
 ?>
