@@ -21,13 +21,19 @@ class Simile_Model extends ORM {
 	/*
 	 * returns JSON of incidents formatted for Simile Timeline
 	 */
-	public function get_timeline_data()
+	public function get_timeline_data($start=NULL, $end=NULL)
 	{
+		$filter = "";
+		if ($start AND $end)
+		{
+			$filter = " incident_date>='".$start."' AND incident_date<='".$end."' ";
+		}
+
 		$markers = ORM::factory('incident')
 			->select('DISTINCT incident.*')
-			->with('location')
-			->join('media', 'incident.id', 'media.incident_id','LEFT')
+			->join('location', 'location.id', 'incident.location_id')
 			->where('incident.incident_active = 1 ')
+			->where($filter)
 			->find_all();
 
 		$timeline_data = "{\"dateTimeFormat\": \"iso8601\",
@@ -45,8 +51,6 @@ class Simile_Model extends ORM {
 			              htmlentities($marker->incident_title)  ."\",";
 			$json_item .= "\"description\": \"" .
 			              $marker->incident_description ."\",";
-			$json_item .= "\"image\": \"" . url::base() .
-			              "media/img/media-image.jpg\",";
 			$json_item .= "\"link\": \"" . url::base() .
 			              "reports/view/" . $marker->id ."\"";
 			$json_item .= "}";
@@ -62,14 +66,26 @@ class Simile_Model extends ORM {
 	 * Returns text data of number of incidents per day formatted for Simile
 	 * Timeplot
 	 */
-	public function get_timeplot_text_data()
+	public function get_timeplot_text_data($category_id = NULL)
 	{
 		// Retrieve all markers
-		$markers = ORM::factory('incident')
-			->select('incident.incident_date, COUNT(*) AS incident_count')
-			->where('incident.incident_active = 1 GROUP BY DATE(incident_date)')
-			->find_all();
-		
+		if ( ! $category_id )
+		{
+			$markers = ORM::factory('incident')
+				->select('incident.incident_date, COUNT(*) AS incident_count')
+				->where('incident.incident_active = 1 GROUP BY DATE(incident_date)')
+				->find_all();
+		}
+		else
+		{
+			$markers = ORM::factory('incident')
+				->join('incident_category', 'incident.id', 'incident_category.incident_id')
+				->join('category', 'category.id', 'incident_category.category_id')
+				->select('incident.incident_date, COUNT(*) AS incident_count')
+				->where('category.id', $category_id)
+				->where('incident.incident_active = 1 GROUP BY DATE(incident_date)')
+				->find_all();
+		}
 		$data = "# Ushahidi Text Data for Timeplot\n";
 		$json_array = array();
 		foreach ($markers as $marker)
@@ -78,7 +94,7 @@ class Simile_Model extends ORM {
 			$json_item .= $marker->incident_count;
 			array_push($json_array, $json_item);
 		}
-		$data .= implode("\n", $json_array);
+		$data .= implode("\n", $json_array);;
 
 		return $data;
 	}
