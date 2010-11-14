@@ -7,8 +7,8 @@
 echo $simile_js;
 ?>
 <?php
-plugin::render('stylesheet');
-plugin::render('javascript');
+echo plugin::render('stylesheet');
+echo plugin::render('javascript');
 ?>
 <script type="text/javascript">
 <?php echo $js; ?>

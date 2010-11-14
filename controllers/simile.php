@@ -22,6 +22,9 @@ class Simile_Controller extends Template_Controller {
 	
 	public $auto_render = TRUE;
 	
+	// Cacheable Controller
+	public $is_cachable = TRUE;
+	
 	// Main template
     public $template = 'simile/layout';
 
@@ -98,6 +101,9 @@ class Simile_Controller extends Template_Controller {
 		$this->template->js->first_date = $first_date;
 		$this->template->js->start_date = $start_date;
 		$this->template->js->last_date = $last_date;
+		
+		//$myPacker = new javascriptpacker($this->template->js , 'Normal', false, false);
+		//$this->template->js = $myPacker->pack();
 	}
 	
 	/*
@@ -169,6 +175,9 @@ class Simile_Controller extends Template_Controller {
 		$this->template->js = new View("simile/timeplot_js");
 		$this->template->js->categories = ORM::factory('category')->orderby('category_title', 'asc')->find_all();
 		$this->template->simile_js = "<script src=\"http://api.simile-widgets.org/timeplot/1.1/timeplot-api.js?bundle=true\" type=\"text/javascript\"></script>";
+		
+		//$myPacker = new javascriptpacker($this->template->js , 'Normal', false, false);
+		//$this->template->js = $myPacker->pack();
 	}
 
 	/*
