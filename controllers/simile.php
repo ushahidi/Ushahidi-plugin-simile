@@ -11,9 +11,10 @@
  * @package    Ushahidi - http://source.ushahididev.com
  * @module	   Simile Timeline Controller
  * @copyright  Ushahidi - http://www.ushahidi.com
- * @license    http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License (LGPL)
-*
-*/
+ * @license    http://www.gnu.org/copyleft/lesser.html
+ *             GNU Lesser General Public License (LGPL)
+ *
+ */
 
 class Simile_Controller extends Template_Controller {
 	
@@ -107,7 +108,7 @@ class Simile_Controller extends Template_Controller {
 	}
 	
 	/*
-	 * returns JSON of incidents formatted for Simile Timeline
+	 * Displays JSON of incidents formatted for Simile Timeline
 	 */
 	public function timeline_data()
 	{
@@ -125,33 +126,7 @@ class Simile_Controller extends Template_Controller {
 			
 			if ( ! $timeline_cache)
 			{
-				$filter = " incident_date>='".$start."' AND incident_date<='".$end."' ";
-			
-				// Retrieve all markers
-				$markers = ORM::factory('incident')
-					->join('location', 'location.id', 'incident.location_id')
-					->where('incident.incident_active = 1 ')
-					->where($filter)
-					->find_all();
-				$timeline_data = $callback."([";
-				$json_array = array();
-				foreach ($markers as $marker)
-		        {
-					$start_date = date('Y-m-d',strtotime($marker->incident_date));
-					//$end_date = date('Y-m-d',(strtotime($marker->incident_date)+86400));
-		            $json_item = "{";
-		            $json_item .= "\"start\":\"" . $start_date . "\",";
-					//$json_item .= "\"end\":\"" . $end_date . "\",";
-					$json_item .= "\"point\":{\"lat\":".$marker->location->latitude.",\"lon\":".$marker->location->longitude." },";
-					$json_item .= "\"title\":\"" . str_replace(chr(10), ' ', str_replace(chr(13), ' ', htmlentities($marker->incident_title))) ."\"";
-					//$json_item .= ",\"options\": { ";
-					//$json_item .= "\"infoHtml\" : \"".str_replace(chr(10), ' ', str_replace(chr(13), ' ', "<div class='custominfostyle'>" . htmlentities($marker->incident_description) . "</div>"))."\"";
-					//$json_item .= "}";
-					$json_item .= "}";
-					array_push($json_array, $json_item);
-				}
-				$timeline_data .= implode(",", $json_array);
-				$timeline_data .= "]);";
+				$timeline_data = Simile_Model::get_timeline_data($start, $end);
 
 				// Cache this timeline
 				$this->cache->set('timeline-'.$start.'-'.$end, $timeline_data, array('timelines'), 3600);
@@ -173,7 +148,8 @@ class Simile_Controller extends Template_Controller {
 		$this->template->content = new View("simile/timeplot");
 		$this->template->this_page = "timeplot";
 		$this->template->js = new View("simile/timeplot_js");
-		$this->template->js->categories = ORM::factory('category')->orderby('category_title', 'asc')->find_all();
+		$this->template->js->categories = ORM::factory('category')
+				->orderby('category_title', 'asc')->find_all();
 		$this->template->simile_js = "<script src=\"http://api.simile-widgets.org/timeplot/1.1/timeplot-api.js?bundle=true\" type=\"text/javascript\"></script>";
 		
 		//$myPacker = new javascriptpacker($this->template->js , 'Normal', false, false);
@@ -181,44 +157,29 @@ class Simile_Controller extends Template_Controller {
 	}
 
 	/*
-	 * returns text data of number of incidents per day formatted for Simile
+	 * Displays text data of number of incidents per day formatted for Simile
 	 * Timeplot
 	 */
 	public function timeplot_text_data($category_id = NULL)
 	{
 		$this->auto_render = FALSE;
 		$this->template = new View('json/timeline');
-		// Retrieve all markers
-		if ( ! $category_id )
-		{
-			$markers = ORM::factory('incident')
-				->select('incident.incident_date, COUNT(*) AS incident_count')
-				->where('incident.incident_active = 1 GROUP BY DATE(incident_date)')
-				->find_all();
-		}
-		else
-		{
-			$markers = ORM::factory('incident')
-				->join('incident_category', 'incident.id', 'incident_category.incident_id')
-				->join('category', 'category.id', 'incident_category.category_id')
-				->select('incident.incident_date, COUNT(*) AS incident_count')
-				->where('category.id', $category_id)
-				->where('incident.incident_active = 1 GROUP BY DATE(incident_date)')
-				->find_all();
-		}
-		$timeplot_data = "# Ushahidi Text Data for Timeplot\n";
-		$json_array = array();
-		foreach ($markers as $marker)
-		{
-			$json_item = date('Y-m-d',strtotime($marker->incident_date)) . ",";
-			$json_item .= $marker->incident_count;
-			array_push($json_array, $json_item);
-		}
-		$timeplot_data .= implode("\n", $json_array);
+
+		$timeplot_data = Simile_Model::get_timeplot_text_data();
 
 		echo $timeplot_data;
-
 	}
+
+	/*
+	 * Displays a page with a Mashup of Simile Timeline and Map of incidents
+	 */
+	public function timemap()
+	{
+		$view = new View("timemap");
+		$view->timemap_data = Simile_Model::get_timemap_data();
+		$view->render(TRUE);
+	}
+
 	
 	/*
 	* Google Analytics
